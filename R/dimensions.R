@@ -94,7 +94,7 @@ getPos <- function(filename = NULL, exe = "MRM"){
   file1 <- normalizePath(filename)
   file2 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
   
-  system2(command = exe, args = paste0("-i ", file1, " -o ", file2), stderr = "TRUE")
+  system2(command = exe, args = paste0("-i ", shQuote(file1), " -o ", file2), stderr = "TRUE")
   
   temptsv <- read.csv(file2, sep = "\t", row.names = NULL)
   
