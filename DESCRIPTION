@@ -1,0 +1,9 @@
+Package: doiTQuickR
+Type: Package
+Title: DESI-TQ data import and analysis tools
+Version: 0.0.0.1
+RoxygenNote: 7.3.0
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
