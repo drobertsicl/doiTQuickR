@@ -1,0 +1,180 @@
+---
+title: "Reading TQ data with doiTQuickR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reading TQ data with doiTQuickR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(imager)
+library(ggplot2)
+library(fs)
+library(MSnbase)
+library(doiTQuickR)
+```
+
+# A word of warning
+Because I am a special kind of idiot I haven't updated R in a while, and it turns out there's a fairly major rewrite in terms of how it handles text, which will clash with basically everything I do herein. So if you have problems, use an R version < 4.2 until I catch up with modernity (ETA: never)
+
+# Converting, reading, and plotting data
+
+First, you want to convert your raw data to .mzML format, this can now be done via the command line without having to do too much repetitive nonsense. Instead, the nonsense is frontloaded.
+
+This will require you to find your msconvert.exe path. If you have absolutely no idea where this is, you can run the following (it might take a little while):
+
+```{r}
+system2(command = "where", args = paste0("/r ", normalizePath("C:/Users"), " msconvert.exe"))
+```
+
+In this case the latest installation is 3.0.24094.d2966db, which just rolls off the tongue, so let's stick it in a variable
+
+```{r}
+msconexe <- "C:/Users/eatmo/AppData/Local/Apps/ProteoWizard 3.0.24094.d2966db 64-bit/msconvert.exe"
+```
+
+Now we want to actually convert something. This will be invoking a command line tool so you don't need to assign it to a variable
+
+```{r}
+convertR("C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/", outpath = "C:/TQ data", msconvert = msconexe)
+```
+
+Now we need to read the file into our session via MSNbase
+
+```{r}
+data <- MSnbase::readSRMData("C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.mzML")
+```
+
+Then extract a readable matrix from it
+
+```{r}
+datamatrix <- getData(data)
+```
+
+We now have three methods for getting the pixel dimensions of an image, firstly, estimating from the _extern.inf file:
+
+```{r}
+imgDims <- estDims("C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/")
+```
+
+In this case it's thrown up a warning because something has gone wrong, as it frequently does. Sometimes this is a simple fix and simply adds a zero, sometimes it takes more investigating. Let's try another method, by plotting every possible factor combination that adds up to the number of rows of the data matrix.
+
+```{r}
+dimslist <- estDims2(nrow(datamatrix))
+```
+
+There is a convenience function to plot all of these to visually inspect whether they make any sense.
+
+```{r}
+plotlist <- plotDims(dimslist, datamatrix)
+```
+
+Most will look like complete nonsense or be too small along one dimension to see anything, 
+
+```{r}
+plotlist[[6]]
+plotlist[[7]]
+```
+
+In this case, number 7 is the lucky number, our dimensions are 290*457
+
+```{r}
+imgDims <- c(290,457)
+```
+
+We can also extract the global coordinate values reported from the stage (I think?) using an ill-gotten .exe, MRMProcessing.exe. As I don't have a license to distribute this, you'll simply have to learn to break the law for the good of mankind. The default path will auto fill to "C:/Program Files (x86)/Waters/DESI Method Editor/MRMProcessing.exe", but you can supply a different path if you have it installed elsewhere. 
+
+```{r}
+# this is commented out so that I can actually build my vignette, but if you really want to see an error you can run it yourself
+#xydims <- getPos("C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/")
+```
+
+Well that didn't work because of some inexplicable error. However if it did work you'd get a data frame of x and y positions that we could use downstream for plotting.
+
+So now let's plot a "TIC" image, which can be useful for co-registration
+
+```{r}
+test <- ionPlot(datamatrix, imgDims, log = TRUE, compound = "tic", title = "Look at this fake TIC image")
+print(test)
+```
+
+That's nice, we can also plot individual ions:
+
+```{r}
+test <- ionPlot(datamatrix, imgDims, log = TRUE, compound = 7, title = "This is the 7th ion. What is the 7th ion? I don't know")
+print(test)
+```
+
+That's also nice, but what the hell is it?
+
+```{r}
+# first we'll get the precursor and product m/z values
+details <- getDaughters(data)
+# then we'll get the names
+ion_names <- getNames("C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/")
+print(ion_names)
+```
+
+So 7 was named "PE 1" on acquisition. However we can see that the first name is slightly messed up, so let's fix it up
+
+```{r}
+ion_names[1] <- "pantothenic acid"
+# then let's stick it onto our details dataframe
+details <- cbind(details, ion_names)
+```
+
+Now let's extract a region of interest, from the background. This is slightly unintuitive, a new window will pop up and ask you to select points around your ROI. When you're done, right click, press stop, then wait for the area to fill in black. In this case I'm selecting some background from the top left
+
+```{r}
+# these are also commented out because it's an interactive input and will just freeze on building
+#roi_bg <- roiSelect(datamatrix, imgDims, log = TRUE)
+
+# so we'll do it the insanely stupid way and load in a csv of the actual pixel index values we got
+
+roi_bg <- read.csv("C:/TQ data/roi_bg.txt")
+roi_bg <- as.numeric(roi_bg[,2])
+```
+
+Then we'll extract an ROI from the tissue:
+
+```{r}
+# as above, run the commented code not the uncommented code
+#roi_tissue <- roiSelect(datamatrix, imgDims, log = TRUE)
+
+roi_tissue <- read.csv("C:/TQ data/roi_tissue.txt")
+roi_tissue <- as.numeric(roi_tissue[,2])
+```
+
+This simply gives us a vector of the pixels encompassed by the area selected. We can use these as an index to extract the information from a particular ion, all ions, etc. for downstream analysis.
+
+```{r}
+# let's make a data frame for a box plot, using the 7th ion
+boxplot_df <- data.frame(intensity = c(datamatrix[roi_bg,7], datamatrix[roi_tissue,7]), type = c(rep("Background", length(roi_bg)), rep("Tissue", length(roi_tissue))))
+
+nolog <- ggplot(boxplot_df,
+aes(x = type,
+y = intensity, fill = type)) +
+geom_boxplot(width = 0.5, outlier.shape = NA) + geom_jitter(size = 0.5, alpha = 0.2)
+
+logtrans <- ggplot(boxplot_df,
+aes(x = type,
+y = log(intensity+1), fill = type)) +
+geom_boxplot(width = 0.5, outlier.shape = NA) + geom_jitter(size = 0.5, alpha = 0.2)
+
+print(nolog)
+print(logtrans)
+```
+
+And from there, if one were so inclined and believed strongly in a statistical method, you could do actual stats. Not me though.
+
+# TO DO:
+
+Incorporate image co-registration into this codebase instead of having everything distributed amongst 70 different script files in random folders.
