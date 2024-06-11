@@ -1,0 +1,49 @@
+"0","convertR(""C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/"", outpath = ""C:/TQ data"", msconvert = msconexe)"
+"1","format: mzML 
+"
+"1","    m/z: Compression-Zlib, 64-bit
+"
+"1","    intensity: Compression-Zlib, 64-bit
+"
+"1","    rt: Compression-Zlib, 64-bit
+"
+"1","ByteOrder_LittleEndian
+"
+"1"," indexed=""true""
+"
+"1","outputPath: C:/TQ data
+"
+"1","extension: .mzML
+"
+"1","contactFilename: 
+"
+"1","runIndexSet: 
+"
+"1","
+"
+"1","spectrum list filters:
+"
+"1","  
+"
+"1","chromatogram list filters:
+"
+"1","  index [1,100]
+"
+"1","  
+"
+"1","filenames:
+"
+"1","  C:/TQ data\IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw
+"
+"1","  
+"
+"1","processing file: C:/TQ data\IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw
+"
+"1","calculating source file checksums
+"
+"1","
+"
+"1","writing output file: C:/TQ data\IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.mzML
+"
+"1","
+"

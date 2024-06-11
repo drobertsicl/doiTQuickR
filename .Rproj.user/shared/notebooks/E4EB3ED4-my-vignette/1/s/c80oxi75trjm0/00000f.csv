@@ -1,0 +1,6 @@
+"0","imgDims <- estDims(""C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/"")"
+"2","Warning in estDims(""C:/TQ data/IMG_Febr15-NEG-lipids-DCIS-!B-105-r2.raw/"") :"
+"2","
+ "
+"2"," Pixel step values do not match, probably returning a wacky dimension
+"
