@@ -21,10 +21,10 @@ estDims <- function(filename = NULL){
   }
   
   file_in <- readChar(filename, nchars = 10000000)
-  xlen <- as.numeric(strsplit(strsplit(file_in, "DesiXLength\t\t")[[1]][2], "\r")[[1]][1])
-  ylen <- as.numeric(strsplit(strsplit(file_in, "DesiYLength\t\t")[[1]][2], "\r")[[1]][1])
-  xstep <- as.numeric(strsplit(strsplit(file_in, "DesiXStep\t\t")[[1]][2], "\r")[[1]][1])
-  ystep <- as.numeric(strsplit(strsplit(file_in, "DesiYStep\t\t")[[1]][2], "\r")[[1]][1])
+  xlen <- as.numeric(strsplit(strsplit(utf8::as_utf8(file_in), "DesiXLength\t\t")[[1]][2], "\r")[[1]][1])
+  ylen <- as.numeric(strsplit(strsplit(utf8::as_utf8(file_in), "DesiYLength\t\t")[[1]][2], "\r")[[1]][1])
+  xstep <- as.numeric(strsplit(strsplit(utf8::as_utf8(file_in), "DesiXStep\t\t")[[1]][2], "\r")[[1]][1])
+  ystep <- as.numeric(strsplit(strsplit(utf8::as_utf8(file_in), "DesiYStep\t\t")[[1]][2], "\r")[[1]][1])
   
   dim1 <- round(xlen/xstep)
   dim2 <- round(ylen/ystep)
@@ -94,7 +94,7 @@ getPos <- function(filename = NULL, exe = "MRM"){
   file1 <- normalizePath(filename)
   file2 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
   
-  system2(command = exe, args = paste0("-i ", shQuote(file1), " -o ", file2), stderr = "TRUE")
+  system2(command = exe, args = paste0("-i ", file1, " -o ", file2), stderr = "TRUE")
   
   temptsv <- read.csv(file2, sep = "\t", row.names = NULL)
   
