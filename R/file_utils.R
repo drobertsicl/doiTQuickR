@@ -56,7 +56,7 @@ getData <- function(srm_in, addpix = TRUE){
   if(addpix == TRUE){
     datamatrix <- rbind(datamatrix, datamatrix[(nrow(datamatrix)-1),])
   }
-  datamatrix <- datamatrix[,srm_in@featureData@data$chromatogramIndex]
+  datamatrix <- datamatrix[,order(srm_in@featureData@data$chromatogramIndex)]
   return(datamatrix)
 }
 
